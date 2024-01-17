@@ -59,41 +59,41 @@ def book(competition,club):
 def purchasePlaces():
     competition = [c for c in competitions if c['name'] == request.form['competition']][0]
     club = [c for c in clubs if c['name'] == request.form['club']][0]
-    placesRequired = int(request.form['places'])
-    if int(club['points']) - placesRequired < 0:
+    places_required = int(request.form['places'])
+    club_name = request.form['club']
+
+    if int(club['points']) - places_required < 0:
         flash("You can't book more places than you have!")
         return render_template('welcome.html', club=club, competitions=competitions)
     else:
-        competition['numberOfPlaces'] = int(competition['numberOfPlaces']) - placesRequired
-        club['points'] = int(club['points']) - placesRequired
+        if competition:
+            club_booking = competition.get(club_name, None)
+
+            if club_booking:
+                if (competition[club_name] + places_required) <= 12:
+                    competition[club_name] += places_required
+                    competition['numberOfPlaces'] = int(competition['numberOfPlaces']) - places_required
+                    club['points'] = int(club['points']) - places_required
+                    flash('Great-booking complete!')
+                    return render_template('welcome.html', club=club, competitions=competitions)
+                else:
+                    flash("You can't book more than 12 places by competition")
+                    return render_template('welcome.html', club=club, competitions=competitions)
+            else:
+                if places_required <= 12:
+                    competition[club_name] = places_required
+                    competition['numberOfPlaces'] = int(competition['numberOfPlaces']) - places_required
+                    club['points'] = int(club['points']) - places_required
+                    flash('Great-booking complete!')
+                    return render_template('welcome.html', club=club, competitions=competitions)
+                else:
+                    flash("You can't book more than 12 places by competition")
+                    return render_template('welcome.html', club=club, competitions=competitions)
+
+        competition['numberOfPlaces'] = int(competition['numberOfPlaces']) - places_required
+        club['points'] = int(club['points']) - places_required
         flash('Great-booking complete!')
         return render_template('welcome.html', club=club, competitions=competitions)
-
-    club_name = request.form['club']
-    places_required = int(request.form['places'])
-
-    if competition:
-        club_booking = competition.get(club_name, None)
-
-        if club_booking:
-            if (competition[club_name] + places_required) <= 12:
-                competition[club_name] += places_required
-                competition['numberOfPlaces'] = int(competition['numberOfPlaces']) - places_required
-            else:
-                flash("You can't book more than 12 places by competition")
-                return render_template('welcome.html', club=club, competitions=competitions)
-        else:
-            if places_required <= 12:
-                competition[club_name] = places_required
-                competition['numberOfPlaces'] = int(competition['numberOfPlaces']) - places_required
-            else:
-                flash("You can't book more than 12 places by competition")
-                return render_template('welcome.html', club=club, competitions=competitions)
-
-    competition['numberOfPlaces'] = int(competition['numberOfPlaces'])-placesRequired
-    club['points'] = int(club['points']) - placesRequired
-    flash('Great-booking complete!')
-    return render_template('welcome.html', club=club, competitions=competitions)
 
 
 # TODO: Add route for points display
