@@ -60,6 +60,30 @@ def purchasePlaces():
         flash('Great-booking complete!')
         return render_template('welcome.html', club=club, competitions=competitions)
 
+    club_name = request.form['club']
+    places_required = int(request.form['places'])
+
+    if competition:
+        club_booking = competition.get(club_name, None)
+
+        if club_booking:
+            if (competition[club_name] + places_required) <= 12:
+                competition[club_name] += places_required
+                competition['numberOfPlaces'] = int(competition['numberOfPlaces']) - places_required
+            else:
+                flash("You can't book more than 12 places by competition")
+                return render_template('welcome.html', club=club, competitions=competitions)
+        else:
+            if places_required <= 12:
+                competition[club_name] = places_required
+                competition['numberOfPlaces'] = int(competition['numberOfPlaces']) - places_required
+            else:
+                flash("You can't book more than 12 places by competition")
+                return render_template('welcome.html', club=club, competitions=competitions)
+
+    flash('Great-booking complete!')
+    return render_template('welcome.html', club=club, competitions=competitions)
+
 
 # TODO: Add route for points display
 @app.route('/pointsDisplay')
