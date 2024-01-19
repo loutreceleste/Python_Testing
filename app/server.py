@@ -1,6 +1,5 @@
 import json
 from datetime import datetime
-
 from flask import Flask,render_template,request,redirect,flash,url_for
 
 
@@ -18,6 +17,8 @@ def loadCompetitions():
 
 app = Flask(__name__)
 app.secret_key = 'something_special'
+app.template_folder = '/home/edward/Documents/Repos/OpenClassRooms/Python_Testing/templates'
+
 
 competitions = loadCompetitions()
 clubs = loadClubs()
@@ -36,7 +37,7 @@ def showSummary():
             for c in competitions if c['date']
         ]
         is_past = [c['name'] for c in competitions_with_datetime if c['date'] < datetime.now()]
-        return render_template('welcome.html',club=club,competitions=competitions,is_past_names=is_past)
+        return render_template('welcome.html', club=club, competitions=competitions, is_past_names=is_past)
     else:
         flash('No club associated with this email, please try again.')
         return render_template('index.html')
@@ -47,7 +48,7 @@ def book(competition,club):
     foundClub = [c for c in clubs if c['name'] == club][0]
     foundCompetition = [c for c in competitions if c['name'] == competition][0]
     if foundClub and foundCompetition:
-        return render_template('booking.html',club=foundClub,competition=foundCompetition)
+        return render_template('booking.html', club=foundClub, competition=foundCompetition)
     else:
         flash("Something went wrong-please try again")
         return render_template('welcome.html', club=club, competitions=competitions)
@@ -97,7 +98,7 @@ def purchasePlaces():
 # TODO: Add route for points display
 @app.route('/pointsDisplay')
 def pointsDisplay():
-    return render_template('points.html',clubs=clubs)
+    return render_template('points.html', clubs=clubs)
 
 
 @app.route('/logout')
