@@ -1,6 +1,7 @@
 import json
 from datetime import datetime
 from flask import Flask,render_template,request,redirect,flash,url_for
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 
 def loadClubs():
@@ -23,21 +24,27 @@ app.template_folder = '/home/edward/Documents/Repos/OpenClassRooms/Python_Testin
 competitions = loadCompetitions()
 clubs = loadClubs()
 
+
+env = Environment(
+    loader=FileSystemLoader(app.template_folder),
+    autoescape=select_autoescape(['html', 'xml'])
+)
+env.globals['datetime'] = datetime
+env.filters['strftime'] = lambda dt, fmt: dt.strftime(fmt) if dt else ''
+
+
 @app.route('/')
 def index():
     return render_template('index.html')
+
 
 @app.route('/showSummary',methods=['POST'])
 def showSummary():
     club_found = [club for club in clubs if club['email'] == request.form['email']]
     if club_found:
+        current_time = datetime.now()
         club = [club for club in clubs if club['email'] == request.form['email']][0]
-        competitions_with_datetime = [
-            {'name': c['name'], 'date': datetime.strptime(c['date'], '%Y-%m-%d %H:%M:%S')}
-            for c in competitions if c['date']
-        ]
-        is_past = [c['name'] for c in competitions_with_datetime if c['date'] < datetime.now()]
-        return render_template('welcome.html', club=club, competitions=competitions, is_past_names=is_past)
+        return render_template('welcome.html', club=club, competitions=competitions, current_time=current_time)
     else:
         flash('No club associated with this email, please try again.')
         return render_template('index.html')
@@ -60,10 +67,11 @@ def purchasePlaces():
     club = [c for c in clubs if c['name'] == request.form['club']][0]
     places_required = int(request.form['places'])
     club_name = request.form['club']
+    current_time = datetime.now()
 
     if int(club['points']) - places_required < 0:
         flash("You can't book more places than you have!")
-        return render_template('welcome.html', club=club, competitions=competitions)
+        return render_template('welcome.html', club=club, competitions=competitions, current_time=current_time)
     else:
         if competition:
             club_booking = competition.get(club_name, None)
@@ -74,25 +82,25 @@ def purchasePlaces():
                     competition['numberOfPlaces'] = int(competition['numberOfPlaces']) - places_required
                     club['points'] = int(club['points']) - places_required
                     flash('Great-booking complete!')
-                    return render_template('welcome.html', club=club, competitions=competitions)
+                    return render_template('welcome.html', club=club, competitions=competitions, current_time=current_time)
                 else:
                     flash("You can't book more than 12 places by competition")
-                    return render_template('welcome.html', club=club, competitions=competitions)
+                    return render_template('welcome.html', club=club, competitions=competitions, current_time=current_time)
             else:
                 if places_required <= 12:
                     competition[club_name] = places_required
                     competition['numberOfPlaces'] = int(competition['numberOfPlaces']) - places_required
                     club['points'] = int(club['points']) - places_required
                     flash('Great-booking complete!')
-                    return render_template('welcome.html', club=club, competitions=competitions)
+                    return render_template('welcome.html', club=club, competitions=competitions, current_time=current_time)
                 else:
                     flash("You can't book more than 12 places by competition")
-                    return render_template('welcome.html', club=club, competitions=competitions)
+                    return render_template('welcome.html', club=club, competitions=competitions, current_time=current_time)
 
         competition['numberOfPlaces'] = int(competition['numberOfPlaces']) - places_required
         club['points'] = int(club['points']) - places_required
         flash('Great-booking complete!')
-        return render_template('welcome.html', club=club, competitions=competitions)
+        return render_template('welcome.html', club=club, competitions=competitions, current_time=current_time)
 
 
 # TODO: Add route for points display
